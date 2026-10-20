@@ -50,6 +50,13 @@ export const useTasksStore = defineStore('tasks', () => {
     if (task) task.done = !task.done
   }
 
+  // 🆕 Renomeia uma tarefa. Título vazio (ou só espaços) é ignorado: fica o original.
+  function updateTitle(id, title) {
+    const text = title.trim()
+    const task = getTask(id)
+    if (task && text) task.title = text
+  }
+
   function removeTask(id) {
     tasks.value = tasks.value.filter((t) => t.id !== id)
   }
@@ -74,6 +81,7 @@ export const useTasksStore = defineStore('tasks', () => {
     getTask,
     addTask,
     toggleTask,
+    updateTitle,
     removeTask,
     clearDone,
   }

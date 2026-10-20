@@ -5,7 +5,7 @@ defineProps({
   tasks: { type: Array, required: true },
 })
 
-defineEmits(['toggle', 'remove'])
+defineEmits(['toggle', 'remove', 'rename'])
 </script>
 
 <template>
@@ -20,6 +20,7 @@ defineEmits(['toggle', 'remove'])
       :task="task"
       @toggle="$emit('toggle', task.id)"
       @remove="$emit('remove', task.id)"
+      @rename="(title) => $emit('rename', task.id, title)"
     />
   </ul>
   <p v-else class="empty">Nenhuma tarefa por aqui ✨</p>

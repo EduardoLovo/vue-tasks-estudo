@@ -7,7 +7,7 @@ import TaskList from '../components/TaskList.vue'
 const store = useTasksStore()
 
 const { tasks, filter, filteredTasks, pendingCount, doneCount } = storeToRefs(store)
-const { addTask, toggleTask, removeTask, clearDone } = store
+const { addTask, toggleTask, updateTitle, removeTask, clearDone } = store
 
 const filters = [
   { value: 'all', label: 'Todas' },
@@ -31,7 +31,12 @@ const filters = [
     </button>
   </nav>
 
-  <TaskList :tasks="filteredTasks" @toggle="toggleTask" @remove="removeTask" />
+  <TaskList
+    :tasks="filteredTasks"
+    @toggle="toggleTask"
+    @remove="removeTask"
+    @rename="updateTitle"
+  />
 
   <footer v-if="tasks.length" class="footer">
     <span>{{ pendingCount }} {{ pendingCount === 1 ? 'pendente' : 'pendentes' }}</span>
