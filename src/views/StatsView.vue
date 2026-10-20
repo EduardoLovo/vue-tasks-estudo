@@ -1,31 +1,37 @@
 <script setup>
-import { useTasksStore } from '../stores/tasks'
 import { computed } from 'vue'
+import { useTasksStore } from '../stores/tasks'
 
+// Primeiro a store...
+const store = useTasksStore()
+
+// ...depois o que USA a store
 const progress = computed(() =>
   store.tasks.length ? Math.round((store.doneCount / store.tasks.length) * 100) : 0,
 )
-// Mesma store da lista: nenhum dado precisa ser passado entre as páginas
-const store = useTasksStore()
 </script>
 
 <template>
-  <section class="cards">
-    <div class="card">
-      <strong>{{ store.tasks.length }}</strong>
-      <span>Total</span>
+  <section>
+    <div class="cards">
+      <div class="card">
+        <strong>{{ store.tasks.length }}</strong>
+        <span>Total</span>
+      </div>
+      <div class="card">
+        <strong>{{ store.pendingCount }}</strong>
+        <span>Pendentes</span>
+      </div>
+      <div class="card">
+        <strong>{{ store.doneCount }}</strong>
+        <span>Concluídas</span>
+      </div>
     </div>
-    <div class="card">
-      <strong>{{ store.pendingCount }}</strong>
-      <span>Pendentes</span>
-    </div>
-    <div class="card">
-      <strong>{{ store.doneCount }}</strong>
-      <span>Concluídas</span>
-    </div>
-    <div class="card">
-      <strong>{{ progress }}%</strong>
-      <span>Progresso</span>
+
+    <p class="label">Progresso: {{ progress }}%</p>
+    <div class="bar">
+      <!-- :style com objeto: a largura acompanha o valor reativo -->
+      <div class="fill" :style="{ width: progress + '%' }"></div>
     </div>
   </section>
 </template>
@@ -33,7 +39,7 @@ const store = useTasksStore()
 <style scoped>
 .cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 3 colunas de tamanhos iguais */
+  grid-template-columns: repeat(3, 1fr); /* 3 colunas de tamanhos iguais */
   gap: 8px;
 }
 
@@ -54,5 +60,26 @@ const store = useTasksStore()
 .card span {
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.label {
+  margin: 20px 0 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* O "trilho" cinza */
+.bar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--border);
+  overflow: hidden; /* corta o preenchimento nas bordas arredondadas */
+}
+
+/* O preenchimento verde: a largura vem do :style */
+.fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s; /* anima quando a largura muda */
 }
 </style>

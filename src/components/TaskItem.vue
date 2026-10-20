@@ -16,7 +16,10 @@ defineEmits(['toggle', 'remove'])
     -->
     <input type="checkbox" :checked="task.done" @change="$emit('toggle')" />
 
-    <span class="title">{{ task.title }}</span>
+        <!-- Link para a rota "task", preenchendo o parâmetro :id → gera /tarefa/<id> -->
+    <RouterLink class="title" :to="{ name: 'task', params: { id: task.id } }">
+      {{ task.title }}
+    </RouterLink>
 
     <button class="remove" title="Remover" @click="$emit('remove')">✕</button>
   </li>
@@ -40,7 +43,13 @@ input {
 }
 
 .title {
-  flex: 1; /* empurra o botão ✕ para a direita */
+  flex: 1;
+  color: var(--text);
+  text-decoration: none; /* tira o sublinhado padrão de link */
+}
+
+.title:hover {
+  color: var(--primary);
 }
 
 .done .title {
