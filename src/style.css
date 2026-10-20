@@ -1,0 +1,32 @@
+/* Estilos globais e variáveis de cor (tema claro/escuro automático) */
+:root {
+  --primary: #42b883; /* o verde do Vue */
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #213547;
+  --muted: #8a94a0;
+  --border: #e3e7eb;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Se o sistema estiver em modo escuro, troca as cores */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15191e;
+    --card: #1e242b;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --border: #2d343c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0 16px;
+  background: var(--bg);
+  color: var(--text);
+}
