@@ -1,80 +1,28 @@
 <script setup>
-import { ref, computed, watch } from 'vue' // 🆕 watch
+import { storeToRefs } from 'pinia'
+import { useTasksStore } from './stores/tasks'
 import TaskForm from './components/TaskForm.vue'
 import TaskList from './components/TaskList.vue'
 
-// 🆕 Nome da "gaveta" no localStorage. Constante em MAIÚSCULAS = valor fixo de configuração
-const STORAGE_KEY = 'vue-tasks'
+// "Pega" a store. Qualquer componente que chamar isto recebe a MESMA store
+const store = useTasksStore()
 
-// 🆕 Lê as tarefas salvas (ou começa com lista vazia)
-function loadTasks() {
-  try {
-    // getItem devolve null se a chave não existir.
-    // JSON.parse(null) → null, e ?? troca null/undefined por []
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []
-  } catch {
-    // Se o texto salvo estiver corrompido, o JSON.parse lança um erro.
-    // Em vez de quebrar o app, começamos do zero.
-    return []
-  }
-}
+/*
+ * ⚠️ Atenção: desestruturar a store direto  →  const { tasks } = store
+ * PERDE a reatividade (a tela para de atualizar).
+ *
+ * storeToRefs() transforma state e getters em refs, mantendo tudo reativo.
+ * As actions (funções) não são reativas, então podem ser desestruturadas direto da store.
+ */
+const { tasks, filter, filteredTasks, pendingCount, doneCount } = storeToRefs(store)
+const { addTask, toggleTask, removeTask, clearDone } = store
 
-// 🆕 O valor inicial agora vem do localStorage
-const tasks = ref(loadTasks())
-
-// 🆕 Qual filtro está ativo: 'all' | 'pending' | 'done'
-const filter = ref(localStorage.getItem('vue-tasks-filter') ?? 'all')
-
-watch(filter, (value) => localStorage.setItem('vue-tasks-filter', value))
-
-// 🆕 Opções dos botões. É uma constante comum (não muda, então não precisa de ref)
+// As opções dos botões são da TELA, não dos dados, então ficam aqui
 const filters = [
   { value: 'all', label: 'Todas' },
   { value: 'pending', label: 'Pendentes' },
   { value: 'done', label: 'Concluídas' },
 ]
-
-// 🆕 A lista que aparece na tela depende de "tasks" E de "filter"
-const filteredTasks = computed(() => {
-  if (filter.value === 'pending') return tasks.value.filter((t) => !t.done)
-  if (filter.value === 'done') return tasks.value.filter((t) => t.done)
-  return tasks.value // 'all'
-})
-
-// 🆕 Contadores
-const pendingCount = computed(() => tasks.value.filter((t) => !t.done).length)
-const doneCount = computed(() => tasks.value.length - pendingCount.value) // computed pode usar outro computed!
-
-function addTask(title) {
-  tasks.value.push({
-    id: Date.now(),
-    title,
-    done: false,
-  })
-}
-
-function toggleTask(id) {
-  const task = tasks.value.find((t) => t.id === id)
-  if (task) task.done = !task.done
-}
-
-function removeTask(id) {
-  tasks.value = tasks.value.filter((t) => t.id !== id)
-}
-
-function clearDone() {
-  tasks.value = tasks.value.filter((t) => !t.done)
-}
-
-// 🆕 Sempre que "tasks" mudar, salva no localStorage
-watch(
-  tasks, // O QUE observar
-  (value) => {
-    // O QUE FAZER quando mudar (value = o novo valor)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
-  },
-  { deep: true }, // OPÇÕES: observa também as mudanças DENTRO dos objetos
-)
 </script>
 
 <template>
