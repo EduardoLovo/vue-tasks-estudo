@@ -1,12 +1,31 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue' // 🆕 computed
 import TaskForm from './components/TaskForm.vue'
 import TaskList from './components/TaskList.vue'
 
-// O App continua sendo o DONO dos dados
 const tasks = ref([])
 
-// Recebe o texto que veio do evento "add" do TaskForm
+// 🆕 Qual filtro está ativo: 'all' | 'pending' | 'done'
+const filter = ref('all')
+
+// 🆕 Opções dos botões. É uma constante comum (não muda, então não precisa de ref)
+const filters = [
+  { value: 'all', label: 'Todas' },
+  { value: 'pending', label: 'Pendentes' },
+  { value: 'done', label: 'Concluídas' },
+]
+
+// 🆕 A lista que aparece na tela depende de "tasks" E de "filter"
+const filteredTasks = computed(() => {
+  if (filter.value === 'pending') return tasks.value.filter((t) => !t.done)
+  if (filter.value === 'done') return tasks.value.filter((t) => t.done)
+  return tasks.value // 'all'
+})
+
+// 🆕 Contadores
+const pendingCount = computed(() => tasks.value.filter((t) => !t.done).length)
+const doneCount = computed(() => tasks.value.length - pendingCount.value) // computed pode usar outro computed!
+
 function addTask(title) {
   tasks.value.push({
     id: Date.now(),
@@ -15,21 +34,15 @@ function addTask(title) {
   })
 }
 
-// Inverte o "done" da tarefa com aquele id
 function toggleTask(id) {
-  // .find() devolve o PRIMEIRO item que satisfaz a condição (ou undefined)
   const task = tasks.value.find((t) => t.id === id)
-  if (task) task.done = !task.done // ! inverte: true → false, false → true
+  if (task) task.done = !task.done
 }
 
-// Remove a tarefa com aquele id
 function removeTask(id) {
-  // .filter() cria um NOVO array só com os itens que passam no teste.
-  // "Fique com todas as tarefas cujo id seja DIFERENTE deste"
   tasks.value = tasks.value.filter((t) => t.id !== id)
 }
 
-// Remove todas as tarefas concluídas
 function clearDone() {
   tasks.value = tasks.value.filter((t) => !t.done)
 }
@@ -39,17 +52,31 @@ function clearDone() {
   <main class="app">
     <h1>📝 Vue Tasks</h1>
 
-    <!-- @add escuta o evento que o TaskForm emite. O texto chega como parâmetro de addTask -->
     <TaskForm @add="addTask" />
 
-    <!-- :tasks passa a lista para o TaskList como PROP -->
-    <TaskList :tasks="tasks" @toggle="toggleTask" @remove="removeTask" />
+    <nav class="filters">
+      <!--
+        Um botão para cada filtro.
+        :class   → o botão do filtro atual ganha a classe "active"
+        @click   → dá para alterar um ref direto no template (sem .value!)
+      -->
+      <button
+        v-for="f in filters"
+        :key="f.value"
+        :class="{ active: filter === f.value }"
+        @click="filter = f.value"
+      >
+        {{ f.label }}
+      </button>
+    </nav>
+
+    <!-- 🆕 A lista agora recebe a versão FILTRADA -->
+    <TaskList :tasks="filteredTasks" @toggle="toggleTask" @remove="removeTask" />
 
     <footer v-if="tasks.length" class="footer">
-      <span>Total: {{ tasks.length }} {{ tasks.length === 1 ? 'tarefa' : 'tarefas' }}</span>
-      <button v-if="tasks.some((t) => t.done)" class="link" @click="clearDone">
-  Limpar concluídas
-      </button>
+      <!-- Template bem mais limpo: a lógica foi para os computed -->
+      <span>{{ pendingCount }} {{ pendingCount === 1 ? 'pendente' : 'pendentes' }}</span>
+      <button v-if="doneCount" class="link" @click="clearDone">Limpar concluídas</button>
     </footer>
   </main>
 </template>
@@ -84,5 +111,27 @@ h1 {
   color: var(--muted);
   cursor: pointer;
   text-decoration: underline;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.filters button {
+  flex: 1; /* os 3 botões com a mesma largura */
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.filters button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
 }
 </style>
