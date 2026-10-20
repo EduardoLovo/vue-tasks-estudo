@@ -1,19 +1,26 @@
 <script setup>
-// Para usar um componente dentro de outro, basta importar
 import TaskItem from './TaskItem.vue'
 
 defineProps({
   tasks: { type: Array, required: true },
 })
+
+defineEmits(['toggle', 'remove'])
 </script>
 
 <template>
   <ul v-if="tasks.length" class="list">
     <!--
-      O v-for agora repete um COMPONENTE, não um <li>.
-      :task="task" passa cada tarefa como prop para o TaskItem.
+      O TaskList só REPASSA os eventos para o App,
+      acrescentando o id da tarefa que foi clicada.
     -->
-    <TaskItem v-for="task in tasks" :key="task.id" :task="task" />
+    <TaskItem
+      v-for="task in tasks"
+      :key="task.id"
+      :task="task"
+      @toggle="$emit('toggle', task.id)"
+      @remove="$emit('remove', task.id)"
+    />
   </ul>
   <p v-else class="empty">Nenhuma tarefa por aqui ✨</p>
 </template>
