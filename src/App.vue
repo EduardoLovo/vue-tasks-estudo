@@ -1,12 +1,31 @@
 <script setup>
-import { ref, computed } from 'vue' // 🆕 computed
+import { ref, computed, watch } from 'vue' // 🆕 watch
 import TaskForm from './components/TaskForm.vue'
 import TaskList from './components/TaskList.vue'
 
-const tasks = ref([])
+// 🆕 Nome da "gaveta" no localStorage. Constante em MAIÚSCULAS = valor fixo de configuração
+const STORAGE_KEY = 'vue-tasks'
+
+// 🆕 Lê as tarefas salvas (ou começa com lista vazia)
+function loadTasks() {
+  try {
+    // getItem devolve null se a chave não existir.
+    // JSON.parse(null) → null, e ?? troca null/undefined por []
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []
+  } catch {
+    // Se o texto salvo estiver corrompido, o JSON.parse lança um erro.
+    // Em vez de quebrar o app, começamos do zero.
+    return []
+  }
+}
+
+// 🆕 O valor inicial agora vem do localStorage
+const tasks = ref(loadTasks())
 
 // 🆕 Qual filtro está ativo: 'all' | 'pending' | 'done'
-const filter = ref('all')
+const filter = ref(localStorage.getItem('vue-tasks-filter') ?? 'all')
+
+watch(filter, (value) => localStorage.setItem('vue-tasks-filter', value))
 
 // 🆕 Opções dos botões. É uma constante comum (não muda, então não precisa de ref)
 const filters = [
@@ -46,6 +65,16 @@ function removeTask(id) {
 function clearDone() {
   tasks.value = tasks.value.filter((t) => !t.done)
 }
+
+// 🆕 Sempre que "tasks" mudar, salva no localStorage
+watch(
+  tasks, // O QUE observar
+  (value) => {
+    // O QUE FAZER quando mudar (value = o novo valor)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
+  },
+  { deep: true }, // OPÇÕES: observa também as mudanças DENTRO dos objetos
+)
 </script>
 
 <template>
