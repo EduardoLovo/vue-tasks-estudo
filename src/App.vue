@@ -1,60 +1,30 @@
 <script setup>
-import { storeToRefs } from 'pinia'
 import { useTasksStore } from './stores/tasks'
-import TaskForm from './components/TaskForm.vue'
-import TaskList from './components/TaskList.vue'
 
-// "Pega" a store. Qualquer componente que chamar isto recebe a MESMA store
+// A mesma store das páginas: o contador no menu atualiza junto
 const store = useTasksStore()
-
-/*
- * ⚠️ Atenção: desestruturar a store direto  →  const { tasks } = store
- * PERDE a reatividade (a tela para de atualizar).
- *
- * storeToRefs() transforma state e getters em refs, mantendo tudo reativo.
- * As actions (funções) não são reativas, então podem ser desestruturadas direto da store.
- */
-const { tasks, filter, filteredTasks, pendingCount, doneCount } = storeToRefs(store)
-const { addTask, toggleTask, removeTask, clearDone } = store
-
-// As opções dos botões são da TELA, não dos dados, então ficam aqui
-const filters = [
-  { value: 'all', label: 'Todas' },
-  { value: 'pending', label: 'Pendentes' },
-  { value: 'done', label: 'Concluídas' },
-]
 </script>
 
 <template>
   <main class="app">
-    <h1>📝 Vue Tasks</h1>
+    <header class="header">
+      <h1>📝 Vue Tasks</h1>
+      <nav>
+        <!--
+          RouterLink é o "<a>" do Vue Router: troca de página SEM recarregar.
+          to="/"           → link pela URL
+          :to="{ name }"   → link pelo NOME da rota (se a URL mudar um dia, o link continua certo)
+        -->
+        <RouterLink to="/">Tarefas</RouterLink>
+        <RouterLink :to="{ name: 'stats' }">
+          Estatísticas
+          <span v-if="store.pendingCount" class="badge">{{ store.pendingCount }}</span>
+        </RouterLink>
+      </nav>
+    </header>
 
-    <TaskForm @add="addTask" />
-
-    <nav class="filters">
-      <!--
-        Um botão para cada filtro.
-        :class   → o botão do filtro atual ganha a classe "active"
-        @click   → dá para alterar um ref direto no template (sem .value!)
-      -->
-      <button
-        v-for="f in filters"
-        :key="f.value"
-        :class="{ active: filter === f.value }"
-        @click="filter = f.value"
-      >
-        {{ f.label }}
-      </button>
-    </nav>
-
-    <!-- 🆕 A lista agora recebe a versão FILTRADA -->
-    <TaskList :tasks="filteredTasks" @toggle="toggleTask" @remove="removeTask" />
-
-    <footer v-if="tasks.length" class="footer">
-      <!-- Template bem mais limpo: a lógica foi para os computed -->
-      <span>{{ pendingCount }} {{ pendingCount === 1 ? 'pendente' : 'pendentes' }}</span>
-      <button v-if="doneCount" class="link" @click="clearDone">Limpar concluídas</button>
-    </footer>
+    <!-- Aqui aparece o componente da rota atual -->
+    <RouterView />
   </main>
 </template>
 
@@ -68,47 +38,50 @@ const filters = [
   box-shadow: 0 4px 24px rgb(0 0 0 / 0.08);
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* título à esquerda, menu à direita */
+  flex-wrap: wrap; /* em tela pequena, o menu desce para a linha de baixo */
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
 h1 {
-  margin: 0 0 20px;
+  margin: 0;
   font-size: 1.6rem;
   color: var(--primary);
 }
 
-.footer {
+nav {
   display: flex;
-  justify-content: space-between; /* texto à esquerda, botão à direita */
-  margin-top: 16px;
-  font-size: 0.9rem;
+  gap: 16px;
+}
+
+nav a {
   color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
 }
 
-.link {
-  border: none;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  text-decoration: underline;
+/*
+ * O RouterLink da rota ativa ganha esta classe AUTOMATICAMENTE.
+ * Usamos a versão "exact" porque a "router-link-active" deixaria
+ * o link "/" ativo em TODAS as páginas (toda URL começa com /).
+ */
+nav a.router-link-exact-active {
+  color: var(--primary);
 }
 
-.filters {
-  display: flex;
-  gap: 8px;
-  margin: 16px 0;
-}
-
-.filters button {
-  flex: 1; /* os 3 botões com a mesma largura */
-  padding: 6px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.filters button.active {
+/* Bolinha com o número de pendentes */
+.badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
   background: var(--primary);
-  border-color: var(--primary);
   color: white;
+  font-size: 0.75rem;
+  text-align: center;
 }
 </style>
